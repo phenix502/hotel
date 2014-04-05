@@ -5,6 +5,11 @@ library(tm)
 library(Rwordseg)
 library(RTextTools)
 library(FSelector)
+library(tmcn)
+library(randomForest)
+library(wordcloud)
+
+
 
 
 # 防止读入的所有string都被当成factor
@@ -13,18 +18,36 @@ options(stringsAsFactors=FALSE)
 # 读入语料
 Infor.pos <- readLines('material/pos2000.txt')
 Infor.neg <- readLines('material/neg2000.txt')
+## 第一个乱码，去掉了，第二条和第三条评论相同去掉
+Infor.pos<-Infor.pos[-886]
 
 
+Infor.neg <- Infor.neg[3:length(Infor.neg)]
 
 # 分词并形成语料库
-corpus <- makeCorpus(Infor.sweet$lyric, Infor.sad$lyric)
+corpus <- makeCorpus(Infor.pos, Infor.neg)
 
 # 形成DocumentTermMatrix
 corpus.dtm.tfidf <- dtm(corpus, tfidf=TRUE)
+# 新改的
+corpus.dtm.tfidf<- DocumentTermMatrix(corpus)
+
+
+
+
 
 
 # 转为data frame
 corpus.df <- as.data.frame(inspect(corpus.dtm.tfidf))
+
+neg.len <- length(Infor.neg)
+pos.len <- length(Infor.pos)
+len <- neg.len + pos.len
+
+corpus.df$label <- c(rep("neg",neg.len), rep("pos",pos.len))
+
+
+
 
 ## 随机森林算法选取前100个重要的词语
 weights.rf <- random.forest.importance(label~., corpus.df, 1)
