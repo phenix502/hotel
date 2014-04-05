@@ -49,8 +49,12 @@ corpus.df$label <- label
 weights.rf <- random.forest.importance(label~., corpus.df, 1)
 subset <- cutoff.k(weights.rf, 100)
 
-set.seed(71)
-weights.rf <- randomForest(label ~ ., data=corpus.df, importance=TRUE,
-                        proximity=TRUE)
+
+# 提取出来的特征做为一个新的数据框
+d <- data.frame(word = rownames(weights.rf), freq= weights.rf$attr_importance)
+# 按重要性从大到小排列
+newdata <- d[order(-d$freq),]
+#画出词云
+wordcloud(d$word, d$freq, random.order = F, colors = brewer.pal(8, "Dark2"))
 
 
